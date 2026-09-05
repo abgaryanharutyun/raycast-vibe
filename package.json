@@ -2,7 +2,7 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "raycast-vibe",
   "title": "Vibe",
-  "description": "Search projects, launch coding agents, and run safe Git actions",
+  "description": "Find projects, launch coding agents, and manage Git workflows",
   "icon": "vibe-icon.png",
   "author": "abgaryanharutyun",
   "license": "MIT",
@@ -13,8 +13,8 @@
     {
       "name": "vibe",
       "title": "Vibe",
-      "subtitle": "Project and Agent Launcher",
-      "description": "Search projects, launch coding agents, and manage Git workflows",
+      "subtitle": "Projects & Coding Agents",
+      "description": "Open projects, launch coding agents, and manage Git safely",
       "mode": "view",
       "keywords": [
         "vibe",

@@ -1,4 +1,4 @@
-# Vibe — Project and Agent Launcher
+# Vibe — Projects & Coding Agents
 
 <p align="center">
   <img src="assets/vibe-icon.png" alt="Vibe logo" width="160" />
@@ -6,9 +6,7 @@
 
 <p align="center"><strong>Search projects. Launch agents. Stay in flow.</strong></p>
 
-Vibe is a Raycast extension for developers who want to jump from a project name to a ready-to-use coding workspace in seconds.
-
-Search local projects, open them in your editor or terminal, launch a coding agent in the correct project directory, and perform safe Git actions without leaving Raycast.
+Vibe is a Raycast extension for developers who want to find projects, launch coding agents, open their favorite tools, and manage Git workflows from one keyboard-first workspace.
 
 ## See Vibe in action
 
