@@ -829,6 +829,17 @@ function FolderActions({
         icon={Icon.Stars}
         target={<AgentPicker folder={folder} onRefresh={onRefresh} />}
       />
+      <Action
+        title="Open in Terminal"
+        icon={Icon.Terminal}
+        onAction={() => {
+          const terminalAgent = agents().find(
+            (agent) => agent.id === "terminal",
+          );
+          if (terminalAgent)
+            void launchAgent(folder.path, terminalAgent).then(onRefresh);
+        }}
+      />
       {folder.repositoryRoot ? (
         <Action.Push
           title="Git Actions"
