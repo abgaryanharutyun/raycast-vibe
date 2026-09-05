@@ -116,10 +116,10 @@ Once published, search for **Vibe** in the Raycast Store and install it.
 
 ### Development installation
 
-Clone the repository, install dependencies, and start Raycast development mode:
+Clone the repository, install the locked dependencies, and start Raycast development mode:
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -129,6 +129,8 @@ To validate the extension:
 npm run build
 npm run lint
 ```
+
+To publish from your local machine, first authenticate with Raycast using `npx ray login`, then run `npm run publish`. Store publishing creates a pull request in the Raycast extensions repository for review.
 
 ## Configuration
 
