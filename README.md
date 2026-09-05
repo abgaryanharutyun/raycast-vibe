@@ -16,25 +16,25 @@ Search local projects, open them in your editor or terminal, launch a coding age
 
 Search local projects by name, path, repository, or remote and see useful Git context at a glance.
 
-![Vibe project search](assets/screenshots/01-project-search.png)
+![Vibe project search](media/01-project-search.png)
 
 ### Launch your preferred coding agent
 
 Start Claude Code, Codex, Gemini CLI, a custom agent, or a regular terminal session in the selected project.
 
-![Vibe agent selection](assets/screenshots/02-choose-your-agent.png)
+![Vibe agent selection](media/02-choose-your-agent.png)
 
 ### Manage Git safely from Raycast
 
 Fetch updates, switch branches, and pull the latest fast-forwardable changes without leaving your workflow.
 
-![Vibe Git Actions](assets/screenshots/03-safe-git-actions.png)
+![Vibe Git Actions](media/03-safe-git-actions.png)
 
 ### Switch branches without leaving your workflow
 
 Browse local and remote branches in a searchable list, with the current branch clearly marked.
 
-![Vibe branch picker](assets/screenshots/04-switch-branches.png)
+![Vibe branch picker](media/04-switch-branches.png)
 
 ## Why Vibe?
 

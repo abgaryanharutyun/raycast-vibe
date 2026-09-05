@@ -1,17 +1,9 @@
 # Changelog
 
-## Unreleased
+## [Initial Release] - {PR_MERGE_DATE}
 
-### Added
-
-- Project and folder search for local development workspaces.
-- Claude Code, Codex, Gemini CLI, and custom agent launching.
-- Terminal, Ghostty, and iTerm support.
-- Visual Studio Code, Cursor, Finder, and GitHub actions.
-- Recent and pinned project management.
-- Last-agent memory and Run Again support.
-- Safe Git fetch, branch switching, and fast-forward-only pull actions.
-
-### Fixed
-
-- Git Actions navigation now opens a supported Raycast list view.
+- Search local projects by name, path, repository, or remote.
+- Launch Claude Code, Codex, Gemini CLI, custom agents, or a terminal session.
+- Open projects in Visual Studio Code, Cursor, Finder, Terminal, Ghostty, or iTerm.
+- Remember recent and pinned projects, including the last agent used.
+- Fetch, switch branches, and pull safely with Git.
