@@ -78,7 +78,7 @@ Open a project directly in:
 
 - Visual Studio Code.
 - Cursor.
-- macOS Terminal.
+- macOS Terminal, Windows Terminal.
 - Ghostty.
 - iTerm.
 - Finder.
@@ -100,9 +100,9 @@ Vibe never automatically resets, discards, stashes, merges, rebases, deletes bra
 
 ## Requirements
 
-- macOS.
+- macOS or Windows.
 - Raycast.
-- A local project directory indexed by macOS Spotlight.
+- A local project directory accessible to the operating system search/index.
 - Git for repository actions.
 - Any coding-agent CLI you want to use, such as Claude Code, Codex, or Gemini CLI.
 
@@ -140,7 +140,7 @@ Open Raycast Extension Preferences for Vibe and configure the terminal, coding a
 
 Choose where Vibe opens projects:
 
-- macOS Terminal.
+- macOS Terminal, Windows Terminal.
 - Ghostty.
 - iTerm.
 
@@ -180,7 +180,7 @@ If a pull cannot be completed as a fast-forward, Vibe reports the problem and le
 
 ## Privacy
 
-Vibe operates locally. It searches folders using macOS Spotlight and executes configured local commands. It does not send project names, paths, source code, Git data, or credentials to a Vibe server.
+Vibe operates locally. It searches folders using the platform's local indexing/search facilities and executes configured local commands. It does not send project names, paths, source code, Git data, or credentials to a Vibe server.
 
 When you choose to open a GitHub repository, Vibe opens the detected remote URL in your browser. Git itself may communicate with configured Git remotes when you use fetch or pull.
 

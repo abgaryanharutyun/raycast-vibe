@@ -56,11 +56,18 @@
       "title": "Terminal",
       "description": "Where Vibe opens projects",
       "type": "dropdown",
-      "default": "terminal",
+      "default": {
+        "macOS": "terminal",
+        "Windows": "windowsTerminal"
+      },
       "data": [
         {
           "title": "macOS Terminal",
           "value": "terminal"
+        },
+        {
+          "title": "Windows Terminal",
+          "value": "windowsTerminal"
         },
         {
           "title": "Ghostty",
@@ -290,5 +297,9 @@
       "required": false
     }
   ],
-  "homepage": "https://github.com/abgaryanharutyun/raycast-vibe"
+  "homepage": "https://github.com/abgaryanharutyun/raycast-vibe",
+  "platforms": [
+    "macOS",
+    "Windows"
+  ]
 }

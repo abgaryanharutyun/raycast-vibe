@@ -12,6 +12,7 @@ import {
 } from "@raycast/api";
 import React from "react";
 import { existsSync } from "node:fs";
+import { basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
@@ -22,7 +23,7 @@ const MAX_RECENT_FOLDERS = 20;
 const LAST_AGENTS_KEY = "last-vibe-agents";
 
 type Preferences = {
-  terminal: "terminal" | "ghostty" | "iterm";
+  terminal: "terminal" | "windowsTerminal" | "ghostty" | "iterm";
   claudeEnabled: boolean;
   claudeCommand: string;
   claudeArgs: string;
@@ -170,27 +171,60 @@ function escapeSpotlightText(value: string): string {
 function isUsefulFolder(folder: string): boolean {
   return Boolean(
     folder &&
-    !folder.split("/").some((part) => part.startsWith(".")) &&
-    !folder.includes("/node_modules/") &&
-    !folder.includes("/.git/") &&
-    !folder.includes("/Library/") &&
-    !folder.includes("/DerivedData/") &&
-    !folder.includes("/Caches/"),
+    !folder.split(/[\\/]/).some((part) => part.startsWith(".")) &&
+    !/[\\/]node_modules[\\/]/.test(folder) &&
+    !/[\\/]\.git[\\/]/.test(folder) &&
+    !/[\\/](Library|DerivedData|Caches)[\\/]/.test(folder),
   );
 }
 
 function shellQuote(value: string): string {
+  if (process.platform === "win32") return `'${value.replaceAll("'", "''")}'`;
   return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
+function powershellQuote(value: string): string {
+  return `'${value.replaceAll("'", "''")}'`;
+}
+
+async function openPath(path: string): Promise<void> {
+  if (process.platform === "win32") {
+    await execFileAsync("explorer.exe", [path]);
+  } else {
+    await execFileAsync("/usr/bin/open", [path]);
+  }
+}
+
+async function openUrl(url: string): Promise<void> {
+  if (process.platform === "win32") {
+    await execFileAsync("cmd.exe", ["/c", "start", "", url]);
+  } else {
+    await execFileAsync("/usr/bin/open", [url]);
+  }
+}
+
+async function openApplication(
+  application: string,
+  path: string,
+): Promise<void> {
+  if (process.platform === "win32") {
+    const executable = application === "Visual Studio Code" ? "code" : "cursor";
+    await execFileAsync(executable, [path]);
+  } else {
+    await execFileAsync("/usr/bin/open", ["-a", application, path]);
+  }
 }
 
 function appleScriptQuote(value: string): string {
   return `"${value.replaceAll("\\", "\\\\").replaceAll('"', '\\"').replaceAll("\n", "\\n")}"`;
 }
 
+const gitExecutable = process.platform === "win32" ? "git" : "/usr/bin/git";
+
 async function git(folder: string, args: string[]): Promise<string> {
   try {
     const { stdout } = await execFileAsync(
-      "/usr/bin/git",
+      gitExecutable,
       ["-C", folder, ...args],
       { timeout: 1500 },
     );
@@ -299,7 +333,7 @@ function detectProjectType(folder: string): string | undefined {
 async function inspectGit(folder: Folder): Promise<Folder> {
   const root = await git(folder.path, ["rev-parse", "--show-toplevel"]);
   if (!root) return { ...folder, projectType: detectProjectType(folder.path) };
-  const repositoryName = root.split("/").pop() || root;
+  const repositoryName = basename(root);
   const remote = await git(folder.path, ["remote", "get-url", "origin"]);
   const branch = await git(folder.path, ["branch", "--show-current"]);
   const status = await git(folder.path, ["status", "--porcelain"]);
@@ -336,16 +370,42 @@ async function searchFolders(query: string): Promise<Folder[]> {
   if (!trimmed) return [];
   const escaped = escapeSpotlightText(trimmed);
   const spotlightQuery = `kMDItemContentType == 'public.folder' && (kMDItemFSName == '*${escaped}*'cd || kMDItemPath == '*${escaped}*'cd)`;
-  const [{ stdout }, gitDirs] = await Promise.all([
-    execFileAsync("/usr/bin/mdfind", [spotlightQuery], {
-      maxBuffer: 2 * 1024 * 1024,
-    }),
-    execFileAsync(
-      "/usr/bin/mdfind",
-      ["kMDItemFSName == '.git' && kMDItemContentType == 'public.folder'"],
-      { maxBuffer: 4 * 1024 * 1024 },
-    ).catch(() => ({ stdout: "" })),
-  ]);
+  const [{ stdout }, gitDirs] =
+    process.platform === "win32"
+      ? await Promise.all([
+          execFileAsync(
+            "powershell.exe",
+            [
+              "-NoProfile",
+              "-NonInteractive",
+              "-Command",
+              `$q = '${trimmed.replaceAll("'", "''")}'; Get-ChildItem -Path $env:USERPROFILE -Directory -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*$q*" -or $_.FullName -like "*$q*" } | Select-Object -ExpandProperty FullName`,
+            ],
+            { maxBuffer: 4 * 1024 * 1024, timeout: 15_000 },
+          ),
+          execFileAsync(
+            "powershell.exe",
+            [
+              "-NoProfile",
+              "-NonInteractive",
+              "-Command",
+              `Get-ChildItem -Path $env:USERPROFILE -Directory -Recurse -Force -Filter .git -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Parent`,
+            ],
+            { maxBuffer: 4 * 1024 * 1024, timeout: 15_000 },
+          ).catch(() => ({ stdout: "" })),
+        ])
+      : await Promise.all([
+          execFileAsync("/usr/bin/mdfind", [spotlightQuery], {
+            maxBuffer: 2 * 1024 * 1024,
+          }),
+          execFileAsync(
+            "/usr/bin/mdfind",
+            [
+              "kMDItemFSName == '.git' && kMDItemContentType == 'public.folder'",
+            ],
+            { maxBuffer: 4 * 1024 * 1024 },
+          ).catch(() => ({ stdout: "" })),
+        ]);
   const paths = new Set<string>();
   stdout
     .split("\n")
@@ -360,7 +420,7 @@ async function searchFolders(query: string): Promise<Folder[]> {
   const candidates = await enrichFolders(
     Array.from(paths)
       .slice(0, 500)
-      .map((path) => ({ name: path.split("/").pop() || path, path })),
+      .map((path) => ({ name: basename(path), path })),
   );
   const lower = trimmed.toLowerCase();
   const matches = candidates.filter((folder) =>
@@ -409,7 +469,7 @@ async function loadFolderItems(key: string, max?: number): Promise<Folder[]> {
   const existing = paths.filter((path) => existsSync(path));
   if (existing.length !== paths.length) await setPaths(key, existing);
   return enrichFolders(
-    existing.map((path) => ({ name: path.split("/").pop() || path, path })),
+    existing.map((path) => ({ name: basename(path), path })),
   );
 }
 
@@ -468,6 +528,17 @@ function gitAccessory(folder: Folder): { text: string; icon?: Icon }[] {
 
 async function openInTerminal(folder: string, command: string): Promise<void> {
   const p = preferences();
+  if (process.platform === "win32") {
+    await execFileAsync("wt.exe", [
+      "-d",
+      folder,
+      "powershell.exe",
+      "-NoExit",
+      "-Command",
+      `Set-Location -LiteralPath ${shellQuote(folder)}; ${command}`,
+    ]);
+    return;
+  }
   const shellCommand = `export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH" && cd ${shellQuote(folder)} && ${command}`;
   const terminal = p.terminal || "terminal";
   if (terminal === "ghostty") {
@@ -482,8 +553,7 @@ async function openInTerminal(folder: string, command: string): Promise<void> {
     ]);
     await execFileAsync("/usr/bin/osascript", [
       "-e",
-      `delay 0.75
-tell application "Ghostty" to activate`,
+      `delay 0.75\ntell application "Ghostty" to activate`,
     ]);
   } else if (terminal === "iterm") {
     const script = `tell application "iTerm" to tell current window to create tab with default profile command ${appleScriptQuote(`/bin/zsh -lc ${shellQuote(shellCommand)}`)}`;
@@ -495,17 +565,35 @@ tell application "Ghostty" to activate`,
 }
 
 async function launchAgent(folder: string, agent: Agent): Promise<void> {
-  const command = agent.command
-    ? `${
-        agent.env?.trim()
-          ? `export ${agent.env
-              .split("\n")
+  const command =
+    process.platform === "win32"
+      ? agent.command
+        ? `${
+            agent.env
+              ?.split("\n")
+              .filter((line) => line.trim())
+              .map((line) => {
+                const separator = line.indexOf("=");
+                if (separator < 1) return "";
+                const key = line.slice(0, separator).trim();
+                const value = line.slice(separator + 1).trim();
+                return `$env:${key}=${powershellQuote(value)};`;
+              })
               .filter(Boolean)
-              .map((line) => line.trim())
-              .join(" ")} && `
-          : ""
-      }exec ${shellQuote(agent.command)}${agent.args.trim() ? ` ${agent.args}` : ""}`
-    : "exec /bin/zsh -l";
+              .join(" ") || ""
+          } & ${powershellQuote(agent.command)}${agent.args.trim() ? ` ${agent.args}` : ""}`
+        : "powershell.exe"
+      : agent.command
+        ? `${
+            agent.env?.trim()
+              ? `export ${agent.env
+                  .split("\n")
+                  .filter(Boolean)
+                  .map((line) => line.trim())
+                  .join(" ")} && `
+              : ""
+          }exec ${shellQuote(agent.command)}${agent.args.trim() ? ` ${agent.args}` : ""}`
+        : "exec /bin/zsh -l";
   try {
     await openInTerminal(folder, command);
     await rememberFolder(folder);
@@ -751,13 +839,7 @@ function FolderActions({
       <Action
         title="Open in Visual Studio Code"
         icon={Icon.Code}
-        onAction={() =>
-          void execFileAsync("/usr/bin/open", [
-            "-a",
-            "Visual Studio Code",
-            folder.path,
-          ])
-        }
+        onAction={() => void openApplication("Visual Studio Code", folder.path)}
       />
       <Action
         title="Open GitHub Repository"
@@ -769,8 +851,7 @@ function FolderActions({
           const url = remote
             ?.replace(/^git@github.com:/, "https://github.com/")
             .replace(/\.git$/, "");
-          if (url?.includes("github.com"))
-            void execFileAsync("/usr/bin/open", [url]);
+          if (url?.includes("github.com")) void openUrl(url);
           else
             await showToast({
               style: Toast.Style.Failure,
@@ -802,9 +883,7 @@ function FolderActions({
               folder={{
                 ...folder,
                 path: folder.repositoryRoot,
-                name:
-                  folder.repositoryRoot.split("/").pop() ||
-                  folder.repositoryRoot,
+                name: basename(folder.repositoryRoot) || folder.repositoryRoot,
               }}
               onRefresh={onRefresh}
             />
@@ -820,23 +899,21 @@ function FolderActions({
         }}
       />
       <Action
-        title="Open in Finder"
+        title={
+          process.platform === "win32"
+            ? "Open in File Explorer"
+            : "Open in Finder"
+        }
         icon={Icon.Finder}
-        onAction={() => void execFileAsync("/usr/bin/open", [folder.path])}
+        onAction={() => void openPath(folder.path)}
       />
       <Action
         title="Open in Cursor"
         icon={Icon.Code}
-        onAction={() =>
-          void execFileAsync("/usr/bin/open", ["-a", "Cursor", folder.path])
-        }
+        onAction={() => void openApplication("Cursor", folder.path)}
       />
 
-      <Action.CopyToClipboard
-        title="Copy Folder Path"
-        content={folder.path}
-        shortcut={{ modifiers: ["cmd"], key: "c" }}
-      />
+      <Action.CopyToClipboard title="Copy Folder Path" content={folder.path} />
       <Action
         title="Remove from Recent Folders"
         icon={Icon.Trash}

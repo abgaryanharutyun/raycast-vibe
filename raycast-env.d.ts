@@ -9,7 +9,7 @@
 
 type ExtensionPreferences = {
   /** Terminal - Where Vibe opens projects */
-  "terminal": "terminal" | "ghostty" | "iterm",
+  "terminal": "terminal" | "windowsTerminal" | "ghostty" | "iterm",
   /** undefined - Enable or disable this option. */
   "claudeEnabled": boolean,
   /** Claude Command - Executable name or path */
