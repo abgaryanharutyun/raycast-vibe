@@ -1,31 +1,80 @@
 # Vibe — Project and Agent Launcher
 
+> Search projects. Launch agents. Stay in flow.
+
 Vibe is a Raycast extension for developers who want to jump from a project name to a ready-to-use coding workspace in seconds.
 
-Search local projects, open them in your editor, launch a coding agent in the project directory, and perform safe Git actions without leaving Raycast.
+Search local projects, open them in your editor or terminal, launch a coding agent in the correct project directory, and perform safe Git actions without leaving Raycast.
+
+## Why Vibe?
+
+Daily development often means switching between project folders, Finder, Terminal, code editors, Git clients, and AI coding tools. Vibe brings those entry points together in one fast, keyboard-first Raycast command.
+
+With Vibe, you can search for a project, choose how you want to work, and start building immediately.
 
 ## Features
 
+### Find projects quickly
+
 - Search local folders by project name or full path.
-- Detect Git repositories, repository names, remotes, branches, and working-tree status.
-- Launch projects with Claude Code, Codex, Gemini CLI, or configurable custom agents.
-- Open a project in Visual Studio Code, Cursor, Finder, or Terminal.
-- Choose between macOS Terminal, Ghostty, and iTerm.
-- Remember recently used and pinned projects.
-- Remember the last agent used for each project and run it again quickly.
-- Open the project’s GitHub repository when a GitHub remote is available.
-- Fetch and refresh Git status with `git fetch --all --prune`.
-- Switch local branches with a confirmation when the working tree is dirty.
-- Create and switch to remote tracking branches only after explicit confirmation.
-- Pull changes with `git pull --ff-only` without automatically merging or rebasing.
+- Search by Git repository name or remote URL.
+- Detect repository roots when a selected folder is nested inside a project.
+- Display branches, remotes, changed files, untracked files, and ahead/behind status.
+- Keep a list of recently used projects.
+- Pin frequently used projects for quick access.
+
+### Launch coding agents
+
+Launch a coding agent directly in the selected project directory:
+
+- Claude Code.
+- Codex.
+- Gemini CLI.
+- Up to three configurable custom agents.
+- A regular terminal session.
+
+Each agent can be configured with:
+
+- Enabled or disabled state.
+- Executable name or absolute path.
+- Optional startup arguments.
+- Optional environment variables.
+
+Vibe remembers the last agent used for each project and provides a **Run Again** action for quickly restarting it.
+
+### Open your preferred tools
+
+Open a project directly in:
+
+- Visual Studio Code.
+- Cursor.
+- macOS Terminal.
+- Ghostty.
+- iTerm.
+- Finder.
+
+Vibe also opens the detected GitHub repository when a GitHub remote is available.
+
+### Safe Git workflows
+
+The **Git Actions** menu provides common repository operations without adding risky destructive commands:
+
+- Fetch and refresh status with `git fetch --all --prune`.
+- Search and switch local branches.
+- View local and remote branches separately.
+- Create a local tracking branch from a remote branch after confirmation.
+- Pull changes with `git pull --ff-only`.
+- Refresh project metadata after successful operations.
+
+Vibe never automatically resets, discards, stashes, merges, rebases, deletes branches, or force-pushes changes.
 
 ## Requirements
 
 - macOS.
 - Raycast.
 - A local project directory indexed by macOS Spotlight.
-- Any coding-agent CLI you want to use, such as Claude Code, Codex, or Gemini CLI.
 - Git for repository actions.
+- Any coding-agent CLI you want to use, such as Claude Code, Codex, or Gemini CLI.
 
 Vibe does not require API keys, a cloud account, or a separate backend.
 
@@ -37,7 +86,7 @@ Once published, search for **Vibe** in the Raycast Store and install it.
 
 ### Development installation
 
-Clone the repository, install dependencies, and start Raycast’s development mode:
+Clone the repository, install dependencies, and start Raycast development mode:
 
 ```bash
 npm install
@@ -53,28 +102,26 @@ npm run lint
 
 ## Configuration
 
-Open Raycast Extension Preferences for Vibe and configure:
+Open Raycast Extension Preferences for Vibe and configure the terminal, coding agents, and custom commands.
 
 ### Terminal
 
 Choose where Vibe opens projects:
 
-- macOS Terminal
-- Ghostty
-- iTerm
+- macOS Terminal.
+- Ghostty.
+- iTerm.
 
 ### Coding agents
 
-Claude Code, Codex, and Gemini CLI are enabled by default. For each agent you can configure:
+Claude Code, Codex, and Gemini CLI are enabled by default. For each agent, configure:
 
 - Enabled or disabled state.
 - Executable name or absolute path.
 - Optional startup arguments.
 - Optional environment variables, one `KEY=value` entry per line.
 
-You can also configure up to three custom agents.
-
-If an agent command is not installed or cannot be found, configure its absolute executable path in preferences.
+You can also configure up to three custom agents. If an agent command is not installed or cannot be found, provide its absolute executable path in preferences.
 
 ## Usage
 
@@ -82,7 +129,7 @@ If an agent command is not installed or cannot be found, configure its absolute 
 2. Search for a project by folder name, path, repository name, or remote URL.
 3. Select a project.
 4. Use **Choose Agent** to launch an agent in the project directory, or use the direct editor and terminal actions.
-5. Open **Git Actions** for repository operations.
+5. Use **Git Actions** for repository operations.
 
 Vibe opens coding agents from the repository root when the selected folder is inside a Git repository. Otherwise, it uses the selected folder itself.
 
@@ -94,13 +141,14 @@ Vibe intentionally provides a conservative Git workflow:
 - Pull uses `git pull --ff-only`.
 - Dirty working trees require confirmation before branch switching or pulling.
 - Remote branches require confirmation before creating a local tracking branch.
+- Diverged branches are not automatically merged or rebased.
 - Vibe does not reset, discard, stash, merge, rebase, delete branches, or force-push.
 
 If a pull cannot be completed as a fast-forward, Vibe reports the problem and leaves manual resolution to the user.
 
 ## Privacy
 
-Vibe operates locally. It searches local folders using macOS Spotlight and executes configured local commands. It does not send project names, paths, source code, Git data, or credentials to a Vibe server.
+Vibe operates locally. It searches folders using macOS Spotlight and executes configured local commands. It does not send project names, paths, source code, Git data, or credentials to a Vibe server.
 
 When you choose to open a GitHub repository, Vibe opens the detected remote URL in your browser. Git itself may communicate with configured Git remotes when you use fetch or pull.
 
