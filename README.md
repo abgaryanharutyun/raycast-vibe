@@ -1,6 +1,10 @@
 # Vibe — Project and Agent Launcher
 
-> Search projects. Launch agents. Stay in flow.
+<p align="center">
+  <img src="assets/vibe-icon.png" alt="Vibe logo" width="160" />
+</p>
+
+<p align="center"><strong>Search projects. Launch agents. Stay in flow.</strong></p>
 
 Vibe is a Raycast extension for developers who want to jump from a project name to a ready-to-use coding workspace in seconds.
 
