@@ -53,7 +53,7 @@ type Preferences = {
   custom3Env: string;
 };
 
-type Folder = {
+export type Folder = {
   name: string;
   path: string;
   branch?: string;
@@ -178,7 +178,7 @@ function isUsefulFolder(folder: string): boolean {
   );
 }
 
-function shellQuote(value: string): string {
+export function shellQuote(value: string): string {
   if (process.platform === "win32") return `'${value.replaceAll("'", "''")}'`;
   return `'${value.replaceAll("'", "'\\''")}'`;
 }
@@ -187,7 +187,7 @@ function powershellQuote(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
-async function openPath(path: string): Promise<void> {
+export async function openPath(path: string): Promise<void> {
   if (process.platform === "win32") {
     await execFileAsync("explorer.exe", [path]);
   } else {
@@ -203,7 +203,7 @@ async function openUrl(url: string): Promise<void> {
   }
 }
 
-async function openApplication(
+export async function openApplication(
   application: string,
   path: string,
 ): Promise<void> {
@@ -564,7 +564,7 @@ async function openInTerminal(folder: string, command: string): Promise<void> {
   }
 }
 
-async function launchAgent(folder: string, agent: Agent): Promise<void> {
+export async function launchAgent(folder: string, agent: Agent): Promise<void> {
   const command =
     process.platform === "win32"
       ? agent.command
@@ -941,7 +941,7 @@ function FolderActions({
   );
 }
 
-function AgentPicker({
+export function AgentPicker({
   folder,
   onRefresh,
 }: {
