@@ -26,10 +26,10 @@ import { GitHubDashboard } from "./views/GitHubDashboard";
 import { createPullRequestWeb, ghAvailability } from "./github";
 
 const execFileAsync = promisify(execFile);
-const RECENT_FOLDERS_KEY = "recent-vibe-folders";
+export const RECENT_FOLDERS_KEY = "recent-vibe-folders";
 const PINNED_FOLDERS_KEY = "pinned-vibe-folders";
 const MAX_RECENT_FOLDERS = 20;
-const LAST_AGENTS_KEY = "last-vibe-agents";
+export const LAST_AGENTS_KEY = "last-vibe-agents";
 
 type Preferences = {
   terminal: "terminal" | "windowsTerminal" | "ghostty" | "iterm";
@@ -361,7 +361,7 @@ async function searchFolders(query: string): Promise<Folder[]> {
   return matches.slice(0, 100);
 }
 
-async function getPaths(key: string, max?: number): Promise<string[]> {
+export async function getPaths(key: string, max?: number): Promise<string[]> {
   const stored = await LocalStorage.getItem<string>(key);
   if (!stored) return [];
   try {
