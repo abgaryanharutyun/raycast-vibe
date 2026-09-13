@@ -253,7 +253,7 @@ type GitBranch = {
   current: boolean;
 };
 
-async function listBranches(
+export async function listBranches(
   root: string,
 ): Promise<{ local: GitBranch[]; remote: GitBranch[] }> {
   const [localOutput, remoteOutput] = await Promise.all([
@@ -282,7 +282,7 @@ async function listBranches(
   return { local, remote };
 }
 
-function gitErrorMessage(error: unknown, fallback: string): string {
+export function gitErrorMessage(error: unknown, fallback: string): string {
   const message = error instanceof Error ? error.message : String(error);
   const detail = message
     .split("\n")
@@ -296,7 +296,7 @@ function gitErrorMessage(error: unknown, fallback: string): string {
   return detail.length > 140 ? fallback : detail;
 }
 
-async function confirmGitChange(
+export async function confirmGitChange(
   title: string,
   message: string,
 ): Promise<boolean> {
