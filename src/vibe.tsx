@@ -11,7 +11,8 @@ import {
   Toast,
 } from "@raycast/api";
 import React from "react";
-import { Agent, agents } from "./agents";
+import { Agent, agents, pickHeadlessAgent } from "./agents";
+import { AskForm } from "./views/AskForm";
 import { TemplateList } from "./views/TemplateList";
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
@@ -745,6 +746,12 @@ function FolderActions({
     return match && match.resumeArgs ? match : undefined;
   }, [lastAgentId]);
 
+  const askAgent = React.useMemo(
+    () => pickHeadlessAgent(agents(), lastAgentId),
+    [lastAgentId],
+  );
+  const repoRoot = folder.repositoryRoot || folder.path;
+
   return (
     <ActionPanel>
       <Action.Push
@@ -803,6 +810,19 @@ function FolderActions({
               ...resumeAgent,
               args: resumeAgent.resumeArgs || "",
             }).then(onRefresh)
+          }
+        />
+      ) : null}
+      {askAgent ? (
+        <Action.Push
+          title="Ask About This Repo"
+          icon={Icon.QuestionMark}
+          target={
+            <AskForm
+              folder={{ path: folder.path, name: folder.name }}
+              repoRoot={repoRoot}
+              agent={askAgent}
+            />
           }
         />
       ) : null}
