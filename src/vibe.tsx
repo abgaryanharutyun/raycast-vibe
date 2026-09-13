@@ -12,6 +12,7 @@ import {
 } from "@raycast/api";
 import React from "react";
 import { Agent, agents } from "./agents";
+import { TemplateList } from "./views/TemplateList";
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { execFile } from "node:child_process";
@@ -902,6 +903,19 @@ function AgentPicker({
                   void launchAgent(folder.path, agent).then(onRefresh)
                 }
               />
+              {agent.id !== "terminal" ? (
+                <Action.Push
+                  title={`Launch ${agent.name} with Prompt…`}
+                  icon={Icon.Text}
+                  target={
+                    <TemplateList
+                      folder={{ path: folder.path, name: folder.name }}
+                      agent={agent}
+                      onRefresh={onRefresh}
+                    />
+                  }
+                />
+              ) : null}
             </ActionPanel>
           }
         />
