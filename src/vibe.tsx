@@ -15,6 +15,7 @@ import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { GitHubDashboard } from "./views/GitHubDashboard";
 
 const execFileAsync = promisify(execFile);
 const RECENT_FOLDERS_KEY = "recent-vibe-folders";
@@ -825,6 +826,11 @@ function FolderActions({
   pinned: boolean;
   onRefresh?: () => void;
 }) {
+  const githubRemote = React.useMemo(
+    () => Boolean(folder.remote && folder.remote.includes("github.com")),
+    [folder.remote],
+  );
+
   return (
     <ActionPanel>
       <Action.Push
@@ -873,6 +879,13 @@ function FolderActions({
             });
         }}
       />
+      {folder.repositoryRoot && githubRemote ? (
+        <Action.Push
+          title="GitHub"
+          icon={Icon.Globe}
+          target={<GitHubDashboard repoRoot={folder.repositoryRoot} />}
+        />
+      ) : null}
 
       <Action
         title="Run Again"
