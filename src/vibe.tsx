@@ -15,6 +15,7 @@ import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { WorktreeList } from "./views/WorktreeList";
 
 const execFileAsync = promisify(execFile);
 const RECENT_FOLDERS_KEY = "recent-vibe-folders";
@@ -845,6 +846,18 @@ function FolderActions({
           title="Git Actions"
           icon={Icon.Code}
           target={<GitActions folder={folder} onRefresh={onRefresh} />}
+        />
+      ) : null}
+      {folder.repositoryRoot ? (
+        <Action.Push
+          title="Worktrees"
+          icon={Icon.Tree}
+          target={
+            <WorktreeList
+              repoRoot={folder.repositoryRoot}
+              onRefresh={onRefresh}
+            />
+          }
         />
       ) : null}
       <Action
