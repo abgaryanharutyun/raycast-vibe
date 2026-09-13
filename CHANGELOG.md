@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.3] - {PR_MERGE_DATE}
+
+- View open pull requests, assigned issues, and requested reviews for a GitHub repository.
+- Create a pull request draft in the browser from the current branch.
+- Uses the local gh CLI; no GitHub tokens are stored in Vibe.
+
 ## [v1.2] - {PR_MERGE_DATE}
 
 - List, create, and remove git worktrees for a repository.
