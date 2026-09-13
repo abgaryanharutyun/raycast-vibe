@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.2] - {PR_MERGE_DATE}
+
+- List, create, and remove git worktrees for a repository.
+- Create worktrees from the current branch or an existing local/remote branch.
+- Launch a coding agent in a new worktree with one action.
+
 ## [v1.1] - {PR_MERGE_DATE}
 
 - Launch coding agents with a prompt template (built-in or custom).
