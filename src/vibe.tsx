@@ -13,6 +13,7 @@ import {
 import React from "react";
 import { Agent, agents, pickHeadlessAgent } from "./agents";
 import { AskForm } from "./views/AskForm";
+import { runAICommit } from "./aiCommit";
 import { TemplateList } from "./views/TemplateList";
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
@@ -824,6 +825,13 @@ function FolderActions({
               agent={askAgent}
             />
           }
+        />
+      ) : null}
+      {askAgent && folder.repositoryRoot ? (
+        <Action
+          title="AI Commit Message"
+          icon={Icon.CodeBlock}
+          onAction={() => void runAICommit(repoRoot, askAgent)}
         />
       ) : null}
       <Action
