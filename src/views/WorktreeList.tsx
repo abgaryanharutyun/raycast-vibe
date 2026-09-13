@@ -1,14 +1,21 @@
 import {
   Action,
   ActionPanel,
+  Alert,
   Icon,
   List,
   Toast,
+  confirmAlert,
   showToast,
 } from "@raycast/api";
 import React from "react";
 import { basename } from "node:path";
-import { Worktree, enrichDirty, listWorktrees } from "../worktrees";
+import {
+  Worktree,
+  enrichDirty,
+  listWorktrees,
+  removeWorktree,
+} from "../worktrees";
 import { AgentPicker, openApplication, openPath } from "../vibe";
 
 export function WorktreeList({
@@ -42,6 +49,41 @@ export function WorktreeList({
   React.useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  const remove = async (wt: Worktree) => {
+    if (wt.dirty) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Worktree has uncommitted changes",
+        message: "Commit or discard them in the worktree first.",
+      });
+      return;
+    }
+    const confirmed = await confirmAlert({
+      title: "Remove worktree?",
+      message: `${wt.path}\n\nThe branch '${wt.branch ?? "detached"}' will be preserved.`,
+      primaryAction: {
+        title: "Remove",
+        style: Alert.ActionStyle.Destructive,
+      },
+    });
+    if (!confirmed) return;
+    try {
+      await removeWorktree(repoRoot, wt.path);
+      await showToast({
+        style: Toast.Style.Success,
+        title: "Worktree removed",
+      });
+      await refresh();
+      onRefresh?.();
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Could not remove worktree",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
 
   return (
     <List
@@ -102,6 +144,14 @@ export function WorktreeList({
                   onAction={() => void openPath(wt.path)}
                 />
                 <Action.CopyToClipboard title="Copy Path" content={wt.path} />
+                {!wt.isMain ? (
+                  <Action
+                    title="Remove Worktree"
+                    icon={Icon.Trash}
+                    style={Action.Style.Destructive}
+                    onAction={() => void remove(wt)}
+                  />
+                ) : null}
               </ActionPanel>
             }
           />
