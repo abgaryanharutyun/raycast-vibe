@@ -87,7 +87,7 @@ function isUsefulFolder(folder: string): boolean {
   );
 }
 
-function shellQuote(value: string): string {
+export function shellQuote(value: string): string {
   if (process.platform === "win32") return `'${value.replaceAll("'", "''")}'`;
   return `'${value.replaceAll("'", "'\\''")}'`;
 }
@@ -473,7 +473,7 @@ async function openInTerminal(folder: string, command: string): Promise<void> {
   }
 }
 
-async function launchAgent(folder: string, agent: Agent): Promise<void> {
+export async function launchAgent(folder: string, agent: Agent): Promise<void> {
   const command =
     process.platform === "win32"
       ? agent.command
