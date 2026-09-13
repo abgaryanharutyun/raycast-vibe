@@ -731,6 +731,19 @@ function FolderActions({
   pinned: boolean;
   onRefresh?: () => void;
 }) {
+  const [lastAgentId, setLastAgentId] = React.useState<string | undefined>(
+    undefined,
+  );
+  React.useEffect(() => {
+    void getLastAgents().then((map) => setLastAgentId(map[folder.path]));
+  }, [folder.path]);
+
+  const resumeAgent = React.useMemo(() => {
+    if (!lastAgentId) return undefined;
+    const match = agents().find((a) => a.id === lastAgentId);
+    return match && match.resumeArgs ? match : undefined;
+  }, [lastAgentId]);
+
   return (
     <ActionPanel>
       <Action.Push
@@ -780,6 +793,18 @@ function FolderActions({
         }}
       />
 
+      {resumeAgent ? (
+        <Action
+          title={`Resume ${resumeAgent.name}`}
+          icon={Icon.Repeat}
+          onAction={() =>
+            void launchAgent(folder.path, {
+              ...resumeAgent,
+              args: resumeAgent.resumeArgs || "",
+            }).then(onRefresh)
+          }
+        />
+      ) : null}
       <Action
         title="Run Again"
         icon={Icon.ArrowClockwise}
