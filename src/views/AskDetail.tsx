@@ -66,6 +66,11 @@ export function AskDetail({
               content={result.stdout}
             />
           ) : null}
+          <Action
+            title="Ask Again"
+            icon={Icon.RotateClockwise}
+            onAction={pop}
+          />
           <Action title="Close" icon={Icon.XMarkCircle} onAction={pop} />
         </ActionPanel>
       }
