@@ -11,6 +11,7 @@ import {
   Toast,
 } from "@raycast/api";
 import React from "react";
+import { Agent, agents } from "./agents";
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { execFile } from "node:child_process";
@@ -68,100 +69,8 @@ type Folder = {
   projectType?: string;
 };
 
-type Agent = {
-  id: string;
-  name: string;
-  command: string;
-  args: string;
-  icon: Icon;
-  description: string;
-  env?: string;
-};
-
 function preferences(): Preferences {
   return getPreferenceValues<Preferences>();
-}
-
-function agents(): Agent[] {
-  const p = preferences();
-  const result: Agent[] = [];
-  if (p.claudeEnabled && p.claudeCommand.trim())
-    result.push({
-      id: "claude",
-      name: "Claude Code",
-      command: p.claudeCommand.trim(),
-      args: p.claudeArgs || "",
-      env: p.claudeEnv || "",
-      icon: Icon.Stars,
-      description: "Start Claude Code in this folder",
-    });
-  if (p.codexEnabled && p.codexCommand.trim())
-    result.push({
-      id: "codex",
-      name: "Codex",
-      command: p.codexCommand.trim(),
-      args: p.codexArgs || "",
-      env: p.codexEnv || "",
-      icon: Icon.Code,
-      description: "Start Codex CLI in this folder",
-    });
-  if (p.geminiEnabled && p.geminiCommand.trim())
-    result.push({
-      id: "gemini",
-      name: "Gemini CLI",
-      command: p.geminiCommand.trim(),
-      args: p.geminiArgs || "",
-      env: p.geminiEnv || "",
-      icon: Icon.Stars,
-      description: "Start Gemini CLI in this folder",
-    });
-  const customAgents = [
-    [
-      "custom",
-      p.customEnabled,
-      p.customName,
-      p.customCommand,
-      p.customArgs,
-      p.customEnv,
-    ],
-    [
-      "custom2",
-      p.custom2Enabled,
-      p.custom2Name,
-      p.custom2Command,
-      p.custom2Args,
-      p.custom2Env,
-    ],
-    [
-      "custom3",
-      p.custom3Enabled,
-      p.custom3Name,
-      p.custom3Command,
-      p.custom3Args,
-      p.custom3Env,
-    ],
-  ] as const;
-  for (const [id, enabled, name, command, args, env] of customAgents) {
-    if (enabled && command.trim())
-      result.push({
-        id,
-        name: name.trim() || "Custom Agent",
-        command: command.trim(),
-        args: args || "",
-        env: env || "",
-        icon: Icon.Terminal,
-        description: `Start ${name.trim() || "custom agent"} in this folder`,
-      });
-  }
-  result.push({
-    id: "terminal",
-    name: "Open Terminal",
-    command: "",
-    args: "",
-    icon: Icon.Terminal,
-    description: "Open a shell in this folder",
-  });
-  return result;
 }
 
 function escapeSpotlightText(value: string): string {
