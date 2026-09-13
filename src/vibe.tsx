@@ -16,6 +16,7 @@ import { basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { WorktreeList } from "./views/WorktreeList";
+import { WorktreeAgentPicker } from "./views/WorktreeAgentPicker";
 
 const execFileAsync = promisify(execFile);
 const RECENT_FOLDERS_KEY = "recent-vibe-folders";
@@ -856,6 +857,18 @@ function FolderActions({
             <WorktreeList
               repoRoot={folder.repositoryRoot}
               onRefresh={onRefresh}
+            />
+          }
+        />
+      ) : null}
+      {folder.repositoryRoot ? (
+        <Action.Push
+          title="Launch Agent in New Worktree"
+          icon={Icon.Rocket}
+          target={
+            <WorktreeAgentPicker
+              repoRoot={folder.repositoryRoot}
+              onCreated={() => onRefresh?.()}
             />
           }
         />
