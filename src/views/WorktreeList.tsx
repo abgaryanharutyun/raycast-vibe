@@ -118,7 +118,7 @@ export function WorktreeList({
       }
     >
       {worktrees.map((wt) => {
-        const title = wt.isMain ? basename(wt.path) : basename(wt.path);
+        const title = basename(wt.path);
         const subtitle = wt.isMain ? "main working tree" : wt.path;
         const accessories: { text: string; icon?: Icon }[] = [];
         if (wt.detached) accessories.push({ text: "detached" });

@@ -15,11 +15,8 @@ export type Worktree = {
   dirty?: boolean;
 };
 
-async function runGit(
-  repoRoot: string,
-  args: string[],
-): Promise<{ stdout: string; stderr: string }> {
-  const { stdout, stderr } = await execFileAsync(
+async function runGit(repoRoot: string, args: string[]): Promise<string> {
+  const { stdout } = await execFileAsync(
     gitExecutable,
     ["-C", repoRoot, ...args],
     {
@@ -27,15 +24,11 @@ async function runGit(
       maxBuffer: 8 * 1024 * 1024,
     },
   );
-  return { stdout, stderr };
+  return stdout;
 }
 
 export async function listWorktrees(repoRoot: string): Promise<Worktree[]> {
-  const { stdout } = await runGit(repoRoot, [
-    "worktree",
-    "list",
-    "--porcelain",
-  ]);
+  const stdout = await runGit(repoRoot, ["worktree", "list", "--porcelain"]);
   const worktrees: Worktree[] = [];
   let current: Partial<Worktree> & { path?: string } = {};
   for (const line of stdout.split("\n")) {
@@ -75,7 +68,7 @@ export async function enrichDirty(worktrees: Worktree[]): Promise<Worktree[]> {
   return Promise.all(
     worktrees.map(async (wt) => {
       try {
-        const { stdout } = await runGit(wt.path, [
+        const stdout = await runGit(wt.path, [
           "status",
           "--porcelain",
           "--untracked-files=no",

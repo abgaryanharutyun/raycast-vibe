@@ -68,18 +68,9 @@ export function NewWorktreeForm({
                 });
                 return;
               }
+              let worktreePath: string;
               try {
-                const worktreePath = await addWorktree(repoRoot, { branch });
-                await showToast({
-                  style: Toast.Style.Success,
-                  title: "Worktree created",
-                  message: worktreePath,
-                });
-                onCreated?.(worktreePath);
-                if (agent) {
-                  await launchAgent(worktreePath, agent);
-                }
-                pop();
+                worktreePath = await addWorktree(repoRoot, { branch });
               } catch (error) {
                 await showToast({
                   style: Toast.Style.Failure,
@@ -87,7 +78,18 @@ export function NewWorktreeForm({
                   message:
                     error instanceof Error ? error.message : String(error),
                 });
+                return;
               }
+              await showToast({
+                style: Toast.Style.Success,
+                title: "Worktree created",
+                message: worktreePath,
+              });
+              onCreated?.(worktreePath);
+              if (agent) {
+                await launchAgent(worktreePath, agent);
+              }
+              pop();
             }}
           />
         </ActionPanel>
