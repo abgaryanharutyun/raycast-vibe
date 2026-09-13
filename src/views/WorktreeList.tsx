@@ -17,6 +17,8 @@ import {
   removeWorktree,
 } from "../worktrees";
 import { AgentPicker, openApplication, openPath } from "../vibe";
+import { NewWorktreeForm } from "./NewWorktreeForm";
+import { WorktreeBranchPicker } from "./WorktreeBranchPicker";
 
 export function WorktreeList({
   repoRoot,
@@ -90,6 +92,30 @@ export function WorktreeList({
       navigationTitle="Worktrees"
       searchBarPlaceholder="Search worktrees…"
       isLoading={loading}
+      actions={
+        <ActionPanel>
+          <Action.Push
+            title="New Worktree from Current Branch"
+            icon={Icon.Plus}
+            target={
+              <NewWorktreeForm
+                repoRoot={repoRoot}
+                onCreated={() => void refresh()}
+              />
+            }
+          />
+          <Action.Push
+            title="Check out Branch as Worktree"
+            icon={Icon.Switch}
+            target={
+              <WorktreeBranchPicker
+                repoRoot={repoRoot}
+                onCreated={() => void refresh()}
+              />
+            }
+          />
+        </ActionPanel>
+      }
     >
       {worktrees.map((wt) => {
         const title = wt.isMain ? basename(wt.path) : basename(wt.path);
@@ -144,6 +170,26 @@ export function WorktreeList({
                   onAction={() => void openPath(wt.path)}
                 />
                 <Action.CopyToClipboard title="Copy Path" content={wt.path} />
+                <Action.Push
+                  title="New Worktree from Current Branch"
+                  icon={Icon.Plus}
+                  target={
+                    <NewWorktreeForm
+                      repoRoot={repoRoot}
+                      onCreated={() => void refresh()}
+                    />
+                  }
+                />
+                <Action.Push
+                  title="Check out Branch as Worktree"
+                  icon={Icon.Switch}
+                  target={
+                    <WorktreeBranchPicker
+                      repoRoot={repoRoot}
+                      onCreated={() => void refresh()}
+                    />
+                  }
+                />
                 {!wt.isMain ? (
                   <Action
                     title="Remove Worktree"
