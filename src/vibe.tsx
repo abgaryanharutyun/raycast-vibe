@@ -195,7 +195,7 @@ async function openPath(path: string): Promise<void> {
   }
 }
 
-async function openUrl(url: string): Promise<void> {
+export async function openUrl(url: string): Promise<void> {
   if (process.platform === "win32") {
     await execFileAsync("cmd.exe", ["/c", "start", "", url]);
   } else {
@@ -526,7 +526,10 @@ function gitAccessory(folder: Folder): { text: string; icon?: Icon }[] {
   return [{ text: parts.join(" · "), icon: Icon.Code }];
 }
 
-async function openInTerminal(folder: string, command: string): Promise<void> {
+export async function openInTerminal(
+  folder: string,
+  command: string,
+): Promise<void> {
   const p = preferences();
   if (process.platform === "win32") {
     await execFileAsync("wt.exe", [
