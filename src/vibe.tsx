@@ -14,6 +14,7 @@ import React from "react";
 import { Agent, agents, pickHeadlessAgent } from "./agents";
 import { AskForm } from "./views/AskForm";
 import { runAICommit } from "./aiCommit";
+import { runAIPRDescription } from "./aiPRDescription";
 import { TemplateList } from "./views/TemplateList";
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
@@ -890,6 +891,15 @@ function FolderActions({
               });
             }
           }}
+        />
+      ) : null}
+      {folder.repositoryRoot && githubRemote && askAgent ? (
+        <Action
+          title="AI Pull Request Description"
+          icon={Icon.Text}
+          onAction={() =>
+            void runAIPRDescription(folder.repositoryRoot!, askAgent)
+          }
         />
       ) : null}
 
