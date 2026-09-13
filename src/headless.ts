@@ -50,15 +50,15 @@ export function runHeadless(
         const out = typeof stdout === "string" ? stdout.trim() : "";
         const err = typeof stderr === "string" ? stderr.trim() : "";
         const code =
-          error && typeof error === "object" && "code" in error
-            ? ((error as { code?: number }).code ?? null)
+          error && typeof error === "object" && "exitCode" in error
+            ? ((error as { exitCode?: number | null }).exitCode ?? null)
             : 0;
         resolve({
           ok: !error && out.length > 0,
           stdout: out,
           stderr: err,
           timedOut,
-          exitCode: typeof code === "number" ? code : null,
+          exitCode: code,
         });
       },
     );
