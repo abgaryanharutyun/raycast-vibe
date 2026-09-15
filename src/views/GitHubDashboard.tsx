@@ -6,6 +6,7 @@ import {
   List,
   Toast,
   showToast,
+  useNavigation,
 } from "@raycast/api";
 import React from "react";
 import {
@@ -20,7 +21,8 @@ import {
   listReviewRequests,
   resolveGitHubRepo,
 } from "../github";
-import { openInTerminal, openUrl } from "../vibe";
+import { checkoutPullRequestAsWorktree } from "../prCheckout";
+import { AgentPicker, openInTerminal, openUrl } from "../vibe";
 
 type State = {
   loading: boolean;
@@ -172,7 +174,12 @@ export function GitHubDashboard({ repoRoot }: { repoRoot: string }) {
     >
       <List.Section title="Open Pull Requests">
         {state.prs.map((pr) => (
-          <PullRequestItem key={`pr-${pr.number}`} pr={pr} onRefresh={load} />
+          <PullRequestItem
+            key={`pr-${pr.number}`}
+            pr={pr}
+            onRefresh={load}
+            repoRoot={repoRoot}
+          />
         ))}
       </List.Section>
       <List.Section title="My Assigned Issues">
@@ -190,6 +197,7 @@ export function GitHubDashboard({ repoRoot }: { repoRoot: string }) {
             key={`review-${pr.number}`}
             pr={pr}
             onRefresh={load}
+            repoRoot={repoRoot}
           />
         ))}
       </List.Section>
@@ -200,10 +208,44 @@ export function GitHubDashboard({ repoRoot }: { repoRoot: string }) {
 function PullRequestItem({
   pr,
   onRefresh,
+  repoRoot,
 }: {
   pr: PullRequest;
   onRefresh: () => Promise<void>;
+  repoRoot: string;
 }) {
+  const { push } = useNavigation();
+
+  const checkoutAsWorktree = async () => {
+    await showToast({
+      style: Toast.Style.Animated,
+      title: `Checking out PR #${pr.number}…`,
+    });
+    try {
+      const { worktreePath } = await checkoutPullRequestAsWorktree(
+        repoRoot,
+        pr,
+      );
+      await showToast({
+        style: Toast.Style.Success,
+        title: `Checked out PR #${pr.number}`,
+        message: worktreePath,
+      });
+      push(
+        <AgentPicker
+          folder={{ name: `pr-${pr.number}`, path: worktreePath }}
+          onRefresh={onRefresh}
+        />,
+      );
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Could not check out PR",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
   const accessories: {
     text?: string;
     icon?: { source: Icon; tintColor?: Color };
@@ -228,6 +270,11 @@ function PullRequestItem({
           <Action.CopyToClipboard
             title="Copy Branch Name"
             content={pr.headRefName}
+          />
+          <Action
+            title="Check out as Worktree"
+            icon={Icon.Tree}
+            onAction={() => void checkoutAsWorktree()}
           />
           <Action
             title="Refresh"

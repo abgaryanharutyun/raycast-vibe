@@ -1,5 +1,10 @@
 # Changelog
 
+## [v1.4] - {PR_MERGE_DATE}
+
+- Check out a pull request as a new worktree from the GitHub dashboard and launch an agent in it with one action.
+- Generate a pull request title and body from your branch's commits and copy the body to the clipboard.
+- Open the most recent Vibe project directly with a new no-view command.
 
 ## [v1.3] - {PR_MERGE_DATE}
 

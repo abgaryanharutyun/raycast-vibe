@@ -14,21 +14,22 @@ import React from "react";
 import { Agent, agents, pickHeadlessAgent } from "./agents";
 import { AskForm } from "./views/AskForm";
 import { runAICommit } from "./aiCommit";
+import { runAIPRDescription } from "./aiPRDescription";
 import { TemplateList } from "./views/TemplateList";
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { GitHubDashboard } from "./views/GitHubDashboard";
-import { createPullRequestWeb, ghAvailability } from "./github";
 import { WorktreeList } from "./views/WorktreeList";
 import { WorktreeAgentPicker } from "./views/WorktreeAgentPicker";
+import { GitHubDashboard } from "./views/GitHubDashboard";
+import { createPullRequestWeb, ghAvailability } from "./github";
 
 const execFileAsync = promisify(execFile);
-const RECENT_FOLDERS_KEY = "recent-vibe-folders";
+export const RECENT_FOLDERS_KEY = "recent-vibe-folders";
 const PINNED_FOLDERS_KEY = "pinned-vibe-folders";
 const MAX_RECENT_FOLDERS = 20;
-const LAST_AGENTS_KEY = "last-vibe-agents";
+export const LAST_AGENTS_KEY = "last-vibe-agents";
 
 type Preferences = {
   terminal: "terminal" | "windowsTerminal" | "ghostty" | "iterm";
@@ -360,7 +361,7 @@ async function searchFolders(query: string): Promise<Folder[]> {
   return matches.slice(0, 100);
 }
 
-async function getPaths(key: string, max?: number): Promise<string[]> {
+export async function getPaths(key: string, max?: number): Promise<string[]> {
   const stored = await LocalStorage.getItem<string>(key);
   if (!stored) return [];
   try {
@@ -741,10 +742,6 @@ function FolderActions({
   pinned: boolean;
   onRefresh?: () => void;
 }) {
-  const githubRemote = React.useMemo(
-    () => Boolean(folder.remote && folder.remote.includes("github.com")),
-    [folder.remote],
-  );
   const [lastAgentId, setLastAgentId] = React.useState<string | undefined>(
     undefined,
   );
@@ -763,6 +760,11 @@ function FolderActions({
     [lastAgentId],
   );
   const repoRoot = folder.repositoryRoot || folder.path;
+
+  const githubRemote = React.useMemo(
+    () => Boolean(folder.remote && folder.remote.includes("github.com")),
+    [folder.remote],
+  );
 
   return (
     <ActionPanel>
@@ -889,6 +891,15 @@ function FolderActions({
               });
             }
           }}
+        />
+      ) : null}
+      {folder.repositoryRoot && githubRemote && askAgent ? (
+        <Action
+          title="AI Pull Request Description"
+          icon={Icon.Text}
+          onAction={() =>
+            void runAIPRDescription(folder.repositoryRoot!, askAgent)
+          }
         />
       ) : null}
 
