@@ -19,6 +19,8 @@ import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { WorktreeList } from "./views/WorktreeList";
+import { WorktreeAgentPicker } from "./views/WorktreeAgentPicker";
 
 const execFileAsync = promisify(execFile);
 const RECENT_FOLDERS_KEY = "recent-vibe-folders";
@@ -57,7 +59,7 @@ type Preferences = {
   custom3Env: string;
 };
 
-type Folder = {
+export type Folder = {
   name: string;
   path: string;
   branch?: string;
@@ -99,7 +101,7 @@ function powershellQuote(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
-async function openPath(path: string): Promise<void> {
+export async function openPath(path: string): Promise<void> {
   if (process.platform === "win32") {
     await execFileAsync("explorer.exe", [path]);
   } else {
@@ -115,7 +117,7 @@ async function openUrl(url: string): Promise<void> {
   }
 }
 
-async function openApplication(
+export async function openApplication(
   application: string,
   path: string,
 ): Promise<void> {
@@ -165,7 +167,7 @@ type GitBranch = {
   current: boolean;
 };
 
-async function listBranches(
+export async function listBranches(
   root: string,
 ): Promise<{ local: GitBranch[]; remote: GitBranch[] }> {
   const [localOutput, remoteOutput] = await Promise.all([
@@ -194,7 +196,7 @@ async function listBranches(
   return { local, remote };
 }
 
-function gitErrorMessage(error: unknown, fallback: string): string {
+export function gitErrorMessage(error: unknown, fallback: string): string {
   const message = error instanceof Error ? error.message : String(error);
   const detail = message
     .split("\n")
@@ -208,7 +210,7 @@ function gitErrorMessage(error: unknown, fallback: string): string {
   return detail.length > 140 ? fallback : detail;
 }
 
-async function confirmGitChange(
+export async function confirmGitChange(
   title: string,
   message: string,
 ): Promise<boolean> {
@@ -778,6 +780,30 @@ function FolderActions({
           target={<GitActions folder={folder} onRefresh={onRefresh} />}
         />
       ) : null}
+      {folder.repositoryRoot ? (
+        <Action.Push
+          title="Worktrees"
+          icon={Icon.Tree}
+          target={
+            <WorktreeList
+              repoRoot={folder.repositoryRoot}
+              onRefresh={onRefresh}
+            />
+          }
+        />
+      ) : null}
+      {folder.repositoryRoot ? (
+        <Action.Push
+          title="Launch Agent in New Worktree"
+          icon={Icon.Rocket}
+          target={
+            <WorktreeAgentPicker
+              repoRoot={folder.repositoryRoot}
+              onCreated={() => onRefresh?.()}
+            />
+          }
+        />
+      ) : null}
       <Action
         title="Open in Visual Studio Code"
         icon={Icon.Code}
@@ -904,7 +930,7 @@ function FolderActions({
   );
 }
 
-function AgentPicker({
+export function AgentPicker({
   folder,
   onRefresh,
 }: {
