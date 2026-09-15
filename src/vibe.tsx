@@ -19,6 +19,8 @@ import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { GitHubDashboard } from "./views/GitHubDashboard";
+import { createPullRequestWeb, ghAvailability } from "./github";
 import { WorktreeList } from "./views/WorktreeList";
 import { WorktreeAgentPicker } from "./views/WorktreeAgentPicker";
 
@@ -109,7 +111,7 @@ export async function openPath(path: string): Promise<void> {
   }
 }
 
-async function openUrl(url: string): Promise<void> {
+export async function openUrl(url: string): Promise<void> {
   if (process.platform === "win32") {
     await execFileAsync("cmd.exe", ["/c", "start", "", url]);
   } else {
@@ -440,7 +442,10 @@ function gitAccessory(folder: Folder): { text: string; icon?: Icon }[] {
   return [{ text: parts.join(" · "), icon: Icon.Code }];
 }
 
-async function openInTerminal(folder: string, command: string): Promise<void> {
+export async function openInTerminal(
+  folder: string,
+  command: string,
+): Promise<void> {
   const p = preferences();
   if (process.platform === "win32") {
     await execFileAsync("wt.exe", [
@@ -736,6 +741,10 @@ function FolderActions({
   pinned: boolean;
   onRefresh?: () => void;
 }) {
+  const githubRemote = React.useMemo(
+    () => Boolean(folder.remote && folder.remote.includes("github.com")),
+    [folder.remote],
+  );
   const [lastAgentId, setLastAgentId] = React.useState<string | undefined>(
     undefined,
   );
@@ -827,6 +836,61 @@ function FolderActions({
             });
         }}
       />
+      {folder.repositoryRoot && githubRemote ? (
+        <Action.Push
+          title="GitHub"
+          icon={Icon.Globe}
+          target={<GitHubDashboard repoRoot={folder.repositoryRoot} />}
+        />
+      ) : null}
+      {folder.repositoryRoot && githubRemote ? (
+        <Action
+          title="Create Pull Request"
+          icon={Icon.NewDocument}
+          onAction={async () => {
+            const availability = await ghAvailability();
+            if (availability === "missing") {
+              await showToast({
+                style: Toast.Style.Failure,
+                title: "GitHub CLI (gh) is not installed",
+                message: "Install it from https://cli.github.com/",
+              });
+              return;
+            }
+            if (availability === "unauthenticated") {
+              await showToast({
+                style: Toast.Style.Failure,
+                title: "GitHub CLI is not authenticated",
+                message: "Run gh auth login in a terminal.",
+              });
+              return;
+            }
+            try {
+              await createPullRequestWeb(folder.repositoryRoot!);
+            } catch (error) {
+              const message =
+                error instanceof Error && "stderr" in error
+                  ? String(
+                      (error as { stderr?: unknown }).stderr ?? error.message,
+                    )
+                  : error instanceof Error
+                    ? error.message
+                    : String(error);
+              const friendly =
+                /no upstream|no commits between|no default remote|no local branch/i.test(
+                  message,
+                )
+                  ? "Push the branch to origin first (git push -u origin <branch>)."
+                  : message;
+              await showToast({
+                style: Toast.Style.Failure,
+                title: "Could not create pull request",
+                message: friendly,
+              });
+            }
+          }}
+        />
+      ) : null}
 
       {resumeAgent ? (
         <Action
