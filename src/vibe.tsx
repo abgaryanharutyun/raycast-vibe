@@ -11,6 +11,10 @@ import {
   Toast,
 } from "@raycast/api";
 import React from "react";
+import { Agent, agents, pickHeadlessAgent } from "./agents";
+import { AskForm } from "./views/AskForm";
+import { runAICommit } from "./aiCommit";
+import { TemplateList } from "./views/TemplateList";
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { execFile } from "node:child_process";
@@ -70,100 +74,8 @@ export type Folder = {
   projectType?: string;
 };
 
-type Agent = {
-  id: string;
-  name: string;
-  command: string;
-  args: string;
-  icon: Icon;
-  description: string;
-  env?: string;
-};
-
 function preferences(): Preferences {
   return getPreferenceValues<Preferences>();
-}
-
-function agents(): Agent[] {
-  const p = preferences();
-  const result: Agent[] = [];
-  if (p.claudeEnabled && p.claudeCommand.trim())
-    result.push({
-      id: "claude",
-      name: "Claude Code",
-      command: p.claudeCommand.trim(),
-      args: p.claudeArgs || "",
-      env: p.claudeEnv || "",
-      icon: Icon.Stars,
-      description: "Start Claude Code in this folder",
-    });
-  if (p.codexEnabled && p.codexCommand.trim())
-    result.push({
-      id: "codex",
-      name: "Codex",
-      command: p.codexCommand.trim(),
-      args: p.codexArgs || "",
-      env: p.codexEnv || "",
-      icon: Icon.Code,
-      description: "Start Codex CLI in this folder",
-    });
-  if (p.geminiEnabled && p.geminiCommand.trim())
-    result.push({
-      id: "gemini",
-      name: "Gemini CLI",
-      command: p.geminiCommand.trim(),
-      args: p.geminiArgs || "",
-      env: p.geminiEnv || "",
-      icon: Icon.Stars,
-      description: "Start Gemini CLI in this folder",
-    });
-  const customAgents = [
-    [
-      "custom",
-      p.customEnabled,
-      p.customName,
-      p.customCommand,
-      p.customArgs,
-      p.customEnv,
-    ],
-    [
-      "custom2",
-      p.custom2Enabled,
-      p.custom2Name,
-      p.custom2Command,
-      p.custom2Args,
-      p.custom2Env,
-    ],
-    [
-      "custom3",
-      p.custom3Enabled,
-      p.custom3Name,
-      p.custom3Command,
-      p.custom3Args,
-      p.custom3Env,
-    ],
-  ] as const;
-  for (const [id, enabled, name, command, args, env] of customAgents) {
-    if (enabled && command.trim())
-      result.push({
-        id,
-        name: name.trim() || "Custom Agent",
-        command: command.trim(),
-        args: args || "",
-        env: env || "",
-        icon: Icon.Terminal,
-        description: `Start ${name.trim() || "custom agent"} in this folder`,
-      });
-  }
-  result.push({
-    id: "terminal",
-    name: "Open Terminal",
-    command: "",
-    args: "",
-    icon: Icon.Terminal,
-    description: "Open a shell in this folder",
-  });
-  return result;
 }
 
 function escapeSpotlightText(value: string): string {
@@ -824,6 +736,25 @@ function FolderActions({
   pinned: boolean;
   onRefresh?: () => void;
 }) {
+  const [lastAgentId, setLastAgentId] = React.useState<string | undefined>(
+    undefined,
+  );
+  React.useEffect(() => {
+    void getLastAgents().then((map) => setLastAgentId(map[folder.path]));
+  }, [folder.path]);
+
+  const resumeAgent = React.useMemo(() => {
+    if (!lastAgentId) return undefined;
+    const match = agents().find((a) => a.id === lastAgentId);
+    return match && match.resumeArgs ? match : undefined;
+  }, [lastAgentId]);
+
+  const askAgent = React.useMemo(
+    () => pickHeadlessAgent(agents(), lastAgentId),
+    [lastAgentId],
+  );
+  const repoRoot = folder.repositoryRoot || folder.path;
+
   return (
     <ActionPanel>
       <Action.Push
@@ -897,6 +828,38 @@ function FolderActions({
         }}
       />
 
+      {resumeAgent ? (
+        <Action
+          title={`Resume ${resumeAgent.name}`}
+          icon={Icon.Repeat}
+          onAction={() =>
+            void launchAgent(folder.path, {
+              ...resumeAgent,
+              args: resumeAgent.resumeArgs || "",
+            }).then(onRefresh)
+          }
+        />
+      ) : null}
+      {askAgent ? (
+        <Action.Push
+          title="Ask About This Repo"
+          icon={Icon.QuestionMark}
+          target={
+            <AskForm
+              folder={{ path: folder.path, name: folder.name }}
+              repoRoot={repoRoot}
+              agent={askAgent}
+            />
+          }
+        />
+      ) : null}
+      {askAgent && folder.repositoryRoot ? (
+        <Action
+          title="AI Commit Message"
+          icon={Icon.CodeBlock}
+          onAction={() => void runAICommit(repoRoot, askAgent)}
+        />
+      ) : null}
       <Action
         title="Run Again"
         icon={Icon.ArrowClockwise}
@@ -994,6 +957,19 @@ export function AgentPicker({
                   void launchAgent(folder.path, agent).then(onRefresh)
                 }
               />
+              {agent.id !== "terminal" ? (
+                <Action.Push
+                  title={`Launch ${agent.name} with Prompt…`}
+                  icon={Icon.Text}
+                  target={
+                    <TemplateList
+                      folder={{ path: folder.path, name: folder.name }}
+                      agent={agent}
+                      onRefresh={onRefresh}
+                    />
+                  }
+                />
+              ) : null}
             </ActionPanel>
           }
         />
