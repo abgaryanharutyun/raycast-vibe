@@ -764,13 +764,6 @@ function FolderActions({
       />
       {folder.repositoryRoot ? (
         <Action.Push
-          title="Git Actions"
-          icon={Icon.Code}
-          target={<GitActions folder={folder} onRefresh={onRefresh} />}
-        />
-      ) : null}
-      {folder.repositoryRoot ? (
-        <Action.Push
           title="Worktrees"
           icon={Icon.Tree}
           target={
@@ -979,6 +972,13 @@ function FolderActions({
           onRefresh?.();
         }}
       />
+      {folder.repositoryRoot ? (
+        <Action.Push
+          title="Git Actions"
+          icon={Icon.Code}
+          target={<GitActions folder={folder} onRefresh={onRefresh} />}
+        />
+      ) : null}
     </ActionPanel>
   );
 }
