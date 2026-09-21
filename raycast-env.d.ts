@@ -72,10 +72,14 @@ declare type Preferences = ExtensionPreferences
 declare namespace Preferences {
   /** Preferences accessible in the `vibe` command */
   export type Vibe = ExtensionPreferences & {}
+  /** Preferences accessible in the `open-last-project` command */
+  export type OpenLastProject = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
   /** Arguments passed to the `vibe` command */
   export type Vibe = {}
+  /** Arguments passed to the `open-last-project` command */
+  export type OpenLastProject = {}
 }
 

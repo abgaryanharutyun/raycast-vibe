@@ -31,37 +31,6 @@ const PINNED_FOLDERS_KEY = "pinned-vibe-folders";
 const MAX_RECENT_FOLDERS = 20;
 export const LAST_AGENTS_KEY = "last-vibe-agents";
 
-type Preferences = {
-  terminal: "terminal" | "windowsTerminal" | "ghostty" | "iterm";
-  claudeEnabled: boolean;
-  claudeCommand: string;
-  claudeArgs: string;
-  claudeEnv: string;
-  codexEnabled: boolean;
-  codexCommand: string;
-  codexArgs: string;
-  codexEnv: string;
-  geminiEnabled: boolean;
-  geminiCommand: string;
-  geminiArgs: string;
-  geminiEnv: string;
-  customEnabled: boolean;
-  customName: string;
-  customCommand: string;
-  customArgs: string;
-  customEnv: string;
-  custom2Enabled: boolean;
-  custom2Name: string;
-  custom2Command: string;
-  custom2Args: string;
-  custom2Env: string;
-  custom3Enabled: boolean;
-  custom3Name: string;
-  custom3Command: string;
-  custom3Args: string;
-  custom3Env: string;
-};
-
 export type Folder = {
   name: string;
   path: string;
@@ -77,8 +46,8 @@ export type Folder = {
   projectType?: string;
 };
 
-function preferences(): Preferences {
-  return getPreferenceValues<Preferences>();
+function preferences(): Preferences.Vibe {
+  return getPreferenceValues<Preferences.Vibe>();
 }
 
 function escapeSpotlightText(value: string): string {
@@ -152,16 +121,25 @@ async function git(folder: string, args: string[]): Promise<string> {
 }
 
 async function runGit(root: string, args: string[]): Promise<string> {
-  const { stdout } = await execFileAsync(
-    "/usr/bin/git",
-    ["-C", root, ...args],
-    { timeout: 30_000 },
-  );
+  const { stdout } = await execFileAsync(gitExecutable, ["-C", root, ...args], {
+    timeout: 30_000,
+  });
   return stdout.trim();
 }
 
 async function isDirty(root: string): Promise<boolean> {
-  return Boolean(await git(root, ["status", "--porcelain"]));
+  try {
+    const { stdout } = await execFileAsync(
+      gitExecutable,
+      ["-C", root, "status", "--porcelain"],
+      { timeout: 5_000 },
+    );
+    return Boolean(stdout.trim());
+  } catch {
+    // Fail closed: never perform a potentially destructive Git action when
+    // the working-tree state cannot be inspected.
+    return true;
+  }
 }
 
 type GitBranch = {
